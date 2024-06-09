@@ -2,10 +2,12 @@ import { useReducer } from "react";
 import DigitButton from "./DigitButton";
 import OperationButton from "./OperationButton";
 import "./styles.css"
+import IncrementButton from "./IncrementButton";
 
 //We can add actions here that will be passed into the reducer
 export const ACTIONS = {
   ADD_DIGIT: "add-digit",
+  ADD_INCREMENT: "add-increment",
   CHOOSE_OPERATION: "choose-operation",
   CLEAR: "clear",
   DELETE_DIGIT: "delete-digit",
@@ -18,90 +20,109 @@ function reducer(state, {type, payload}){
       if(state.overwrite){
         return{
           ...state,
-          currentOperand: payload.digit,
+          currentWeight: payload.digit,
           overwrite:false,
         }
       }
-      if(payload.digit === "0" && state.currentOperand === "0"){
+      if(payload.digit === "0" && state.currentWeight === "0"){
         return state;
       }
-      if(payload.digit === "." && state.currentOperand.includes(".")){
+      if(payload.digit === "." && state.currentWeight.includes(".")){
         return state;
       }
       return {
         ...state,
-        currentOperand: `${state.currentOperand || ""}${payload.digit}`,
+        currentWeight: `${state.currentWeight || ""}${payload.digit}`,
       }
+    case ACTIONS.ADD_INCREMENT:
+      if(state.currentWeight == null){
+        return {
+          // ...state,
+          overwrite: false,
+          convertedWeight: payload.digit,
+          operation: null,
+          currentWeight: payload.digit
+        }
+      }else if(state.currentWeight != null){
+        return{
+          ...state,
+          overwrite: false,
+          convertedWeight: evaluateIncrement(state.currentWeight, payload),
+          operation: null,
+          currentWeight: evaluateIncrement(state.currentWeight, payload)
+        }
+      }
+
     case ACTIONS.CHOOSE_OPERATION:
-      if(state.currentOperand == null && state.previousOperand == null){
+      if(state.currentWeight == null && state.convertedWeight == null){
         return state;
       }
       
-      if(state.currentOperand == null){
+      if(state.currentWeight == null){
         return {
           ...state,
           operation: payload.operation,
         }
       }
-      if(state.previousOperand == null){
+      if(state.convertedWeight == null){
         return{
           ...state,
           operation: payload.operation,
-          previousOperand: state.currentOperand,
-          currentOperand: null,
+          convertedWeight: state.currentWeight,
+          currentWeight: null,
         }
       }
 
       return{
         ...state,
-        previousOperand: evaluate(state),
+        convertedWeight: evaluate(state),
         operation:payload.operation,
-        currentOperand:null
+        currentWeight:null
       }
     case ACTIONS.DELETE_DIGIT:
       if(state.overwrite) {
         return{
           ...state,
           overwrite:false,
-          currentOperand: null
+          currentWeight: null
         }
       }
-      if(state.currentOperand == null){
+      if(state.currentWeight == null){
         return state
       }
-      if(state.currentOperand.className === 1){
+      if(state.currentWeight.className === 1){
         return {
           ...state,
-          currentOperand: null
+          currentWeight: null
         }
       }
 
       return {
         ...state,
-        currentOperand: state.currentOperand.slice(0, -1)
+        currentWeight: state.currentWeight.slice(0, -1)
       }
     case ACTIONS.CLEAR:
       return {};//Returns to empty state
     case ACTIONS.EVALUATE:
       if(state.operation == null || 
-         state.currentOperand == null || 
-         state.previousOperand == null)
+         state.currentWeight == null || 
+         state.convertedWeight == null)
         {
           return state
         }
       return{
         ...state,
         overwrite: true,
-        previousOperand: null,
+        convertedWeight: null,
         operation: null,
-        currentOperand: evaluate(state)
+        currentWeight: evaluate(state)
       }
   }
 }
 
-function evaluate({currentOperand, previousOperand, operation} ){
-  const prev = parseFloat(previousOperand)
-  const current = parseFloat(currentOperand)
+function evaluate({currentWeight, convertedWeight, operation} ){
+  const prev = parseFloat(convertedWeight)
+  const current = parseFloat(currentWeight)
   if(isNaN(prev) || isNaN(current)){
     return ""
   }
@@ -124,6 +145,14 @@ function evaluate({currentOperand, previousOperand, operation} ){
   return computation.toString()
 }
 
+function evaluateIncrement(weight, payload){
+  const weightInt = parseFloat(weight)
+  const digitInt = parseFloat(payload.digit)
+
+  
+  return (weightInt + digitInt).toString()
+}
+
 const INTEGER_FORMATTER = new Intl.NumberFormat("en-us", {
   maximumFractionDigits: 0,
 })
@@ -134,9 +163,10 @@ function formatOperand(operand){
   if(decimal == null) return INTEGER_FORMATTER.format(integer)
   return `${INTEGER_FORMATTER.format(integer)}.${decimal}`
   }
+
 function App() {
   //current/prev/oper will be our lbs and kgs and oper
-  const [{ currentOperand, previousOperand, operation }, dispatch] = useReducer(
+  const [{ currentWeight, convertedWeight, operation }, dispatch] = useReducer(
     reducer,
     {}
   )
@@ -145,28 +175,35 @@ function App() {
       {/* we will have two output in the future. One for KG and one for LBS */}
       <div className="output">
         {/* We could have it inline so it shows both. */}
-        <div className="previous-operand">{formatOperand(previousOperand)}{operation}</div>
-        <div className="current-operand">{formatOperand(currentOperand)}</div>
+        <div className="previous-operand">{formatOperand(convertedWeight)}{operation}</div>
+        <div className="current-operand">{formatOperand(currentWeight)}</div>
       </div>
       {/* span-two means spans two collumns. IMPORTANT */}
-      <button className="span-two" onClick={() => dispatch({type: ACTIONS.CLEAR})}>AC</button>
+      <button onClick={() => dispatch({type: ACTIONS.CLEAR})}>AC</button>
       <button onClick={() => dispatch({type: ACTIONS.DELETE_DIGIT})} >DEL</button>
-      <OperationButton operation="/" dispatch={dispatch}/>
+      <OperationButton operation="ph" dispatch={dispatch}/>
+      <IncrementButton digit="+55" dispatch={dispatch}/>
+      <IncrementButton digit="+45" dispatch={dispatch}/>
       <DigitButton digit="1" dispatch={dispatch}/>
       <DigitButton digit="2" dispatch={dispatch}/>
       <DigitButton digit="3" dispatch={dispatch}/>
-      <OperationButton operation="*" dispatch={dispatch}/>
+      <IncrementButton digit="+35" dispatch={dispatch}/>
+      <IncrementButton digit="+25" dispatch={dispatch}/>
       <DigitButton digit="4" dispatch={dispatch}/>
       <DigitButton digit="5" dispatch={dispatch}/>
       <DigitButton digit="6" dispatch={dispatch}/>
-      <OperationButton operation="+" dispatch={dispatch}/>
+      <IncrementButton digit="+15" dispatch={dispatch}/>
+      <IncrementButton digit="+10" dispatch={dispatch}/>
       <DigitButton digit="7" dispatch={dispatch}/>
       <DigitButton digit="8" dispatch={dispatch}/>
       <DigitButton digit="9" dispatch={dispatch}/>
-      <OperationButton operation="-" dispatch={dispatch}/>
-      <DigitButton digit="." dispatch={dispatch}/>
+      <IncrementButton digit="+5" dispatch={dispatch}/>
+      <IncrementButton digit="+2.5" dispatch={dispatch}/>
+      <button onClick={() => dispatch({type: ACTIONS.EVALUATE})}>KG</button>
       <DigitButton digit="0" dispatch={dispatch}/>
-      <button className="span-two" onClick={() => dispatch({type: ACTIONS.EVALUATE})}>=</button>
+      <DigitButton digit="." dispatch={dispatch}/>
+      <button>ph</button>
+      <button>ph</button>
       </div>
   )
 }
