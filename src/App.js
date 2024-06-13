@@ -14,12 +14,12 @@ export const ACTIONS = {
   SWITCH_UNIT: "switch-unit"
 }
 
-const lbsValues = [55, 45, 35, 25, 10, 5, 2.5]
-const kgsValues = [25, 20, 15, 10, 5, 2, 1]
+const lbsValues = [100, 55, 45, 35, 25, 10, 5, 2.5]
+const kgsValues = [45, 25, 20, 15, 10, 5, 2, 1]
 
 const initialState = {
-  currentWeight: null,
-  convertedWeight: null,
+  currentWeight: "0",
+  convertedWeight: "0",
   operation: null,
   unit: "lbs",
   incrementValues: lbsValues
@@ -32,6 +32,7 @@ function reducer(state, {type, payload}){
         return{
           ...state,
           currentWeight: payload.digit,
+          convertedWeight: evaluateIncrement("0", payload, state.unit === "lbs" ? "kg" : "lbs"),
           overwrite:false,
         }
       }
@@ -44,20 +45,21 @@ function reducer(state, {type, payload}){
       return {
         ...state,
         currentWeight: `${state.currentWeight || ""}${payload.digit}`,
+        convertedWeight: evaluateUnitOfMeasurement(`${state.currentWeight || ""}${payload.digit}`, state.unit === "lbs" ? "kg" : "lbs"),
       }
     case ACTIONS.ADD_INCREMENT:
       if(state.currentWeight == null){
         return {
           ...state,
-          overwrite: false,
-          convertedWeight: payload.digit,
+          overwrite: true,
+          convertedWeight: evaluateIncrement("0", payload, state.unit === "lbs" ? "kg" : "lbs"),
+          currentWeight: payload.digit,
           operation: null,
-          currentWeight: payload.digit
         }
       }else if(state.currentWeight != null){
         return{
           ...state,
-          overwrite: false,
+          overwrite: true,
           convertedWeight: evaluateIncrement(state.currentWeight, payload, state.unit === "lbs" ? "kg" : "lbs"),
           operation: null,
           currentWeight: evaluateIncrement(state.currentWeight, payload, null)
@@ -91,32 +93,19 @@ function reducer(state, {type, payload}){
         currentWeight:null
       }
     case ACTIONS.DELETE_DIGIT:
-      if(state.overwrite) {
-        return{
-          ...state,
-          overwrite:false,
-          currentWeight: null
-        }
-      }
-      if(state.currentWeight == null){
+      if(state.currentWeight == "0"){
         return state
       }
-      if(state.currentWeight.className === 1){
-        return {
-          ...state,
-          currentWeight: null
-        }
-      }
-
       return {
         ...state,
-        currentWeight: state.currentWeight.slice(0, -1)
+        currentWeight: state.currentWeight.slice(0, -1),
+        convertedWeight: (evaluateUnitOfMeasurement(state.currentWeight.slice(0, -1) , state.unit === "lbs" ? "kg" : "lbs"))
       }
     case ACTIONS.CLEAR:
       return {
         ...state,
-        currentWeight: null,
-        convertedWeight: null,
+        currentWeight: "0",
+        convertedWeight: "0",
         operation: null
       };//Returns to empty state
     case ACTIONS.EVALUATE:
@@ -178,23 +167,22 @@ function evaluateIncrement(weight, payload, unit){
   const digitInt = parseFloat(payload.digit)
 
   if(unit != null){
-    let result;
-    if (unit === "kg") {
-      // Convert digit to kgs if needed and then add
-      const digitInKgs = digitInt ;
-      result = parseFloat((weightInt + digitInKgs) * 0.453592).toFixed(1);
-    } else {
-      // Convert digit to lbs if needed and then add
-      const digitInLbs = digitInt ;
-      result = (weightInt + digitInLbs) * 2.20462;
-    }
-    return formatWeight(result);
+    return formatWeight(evaluateUnitOfMeasurement(weightInt + digitInt, unit));
   }
-
-
   return formatWeight(weightInt + digitInt);
 }
 
+function evaluateUnitOfMeasurement(weight, unit){
+  let result;
+  if (unit === "kg") {
+    // Convert digit to kgs if needed and then add
+    result = parseFloat((weight ) * 0.453592).toFixed(1);
+  } else {
+    // Convert digit to lbs if needed and then add
+    result = (weight) * 2.20462;
+  }
+  return formatWeight(result);
+}
 
 function formatWeight(newWeight) {
   // Round to the nearest 0.5
@@ -243,11 +231,11 @@ function App() {
       <DigitButton digit="9" dispatch={dispatch} />
       <IncrementButton digit={incrementValues[4].toString()} dispatch={dispatch} />
       <IncrementButton digit={incrementValues[5].toString()} dispatch={dispatch} />
-      <IncrementButton digit={incrementValues[6].toString()} dispatch={dispatch} />
+      <DigitButton digit="ph" dispatch={dispatch} />
       <DigitButton digit="0" dispatch={dispatch} />
       <DigitButton digit="." dispatch={dispatch} />
-      <OperationButton operation="+" dispatch={dispatch} />
       <IncrementButton digit={incrementValues[6].toString()} dispatch={dispatch} />
+      <IncrementButton digit={incrementValues[7].toString()} dispatch={dispatch} />
 
 
     </div>
