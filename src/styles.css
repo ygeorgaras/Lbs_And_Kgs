@@ -24,6 +24,20 @@ body{
 .output{
     grid-column: 1 / -1;
     background-color: rgba(0,0,0,.75);
+    grid-column: span 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-around;
+    padding: .75rem;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.weight-output{
+    grid-column: 1 / -1;
+    grid-column: span 2;
+    background-color: rgba(0,0,0,.75);
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -51,6 +65,9 @@ body{
     font-size: 1.5rem;
 }
 
+.output .unit{
+    font-size: 0.75em; /* Adjust this value to make the text smaller */
+}
 .output .current-operand{
     color: white;
     font-size: 2.5rem;

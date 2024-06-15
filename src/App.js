@@ -16,12 +16,13 @@ export const ACTIONS = {
 
 const lbsValues = [100, 55, 45, 35, 25, 10, 5, 2.5]
 const kgsValues = [45, 25, 20, 15, 10, 5, 2, 1]
-
+const lbsString = "lbs"
+const kgsString = "kg"
 const initialState = {
   currentWeight: "0",
   convertedWeight: "0",
   operation: null,
-  unit: "lbs",
+  unit: lbsString,
   incrementValues: lbsValues
 }
 
@@ -129,7 +130,7 @@ function reducer(state, {type, payload}){
         overwrite: false,
         convertedWeight: state.currentWeight,
         currentWeight: state.convertedWeight,
-        unit: state.unit === "lbs" ? "kg" : "lbs",
+        unit: state.unit === lbsString ? kgsString : lbsString,
         incrementValues: state.unit === "lbs" ? kgsValues : lbsValues
       }
     default:
@@ -204,12 +205,19 @@ function formatOperand(operand){
   }
 
 function App() {
-  const [{ currentWeight, convertedWeight, operation, unit = "lbs", incrementValues = lbsValues}, dispatch] = useReducer(reducer, initialState)
+  const [{ currentWeight, convertedWeight, operation, unit = lbsString, incrementValues = lbsValues}, dispatch] = useReducer(reducer, initialState)
   return (
     <div className="calculator-grid">
+      <div className="weight-output">  
+      </div>
       <div className="output">
-        <div className="previous-operand">{formatOperand(convertedWeight)}{operation}{unit === "lbs" ? "kg" : "lbs"}</div>
-        <div className="current-operand">{formatOperand(currentWeight)}{unit}</div>
+        <div className="previous-operand">{
+          formatOperand(convertedWeight)}{operation}
+          <span className="unit">{unit === "lbs" ? "kg" : "lbs"}</span>
+        </div>
+        <div className="current-operand">{formatOperand(currentWeight)}
+          <span className="unit">{unit}</span>
+        </div>
       </div>
       <button onClick={() => dispatch({ type: ACTIONS.CLEAR })}>AC</button>
       <button onClick={() => dispatch({ type: ACTIONS.DELETE_DIGIT })} >DEL</button>
@@ -241,5 +249,6 @@ function App() {
     </div>
   )
 }
+
 
 export default App;
