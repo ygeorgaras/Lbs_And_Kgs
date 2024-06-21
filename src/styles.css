@@ -60,7 +60,7 @@ body{
     background-color: rgba(255,255,255,.9);
 }
 
-.output .previous-operand{
+.output .converted-weight{
     color: rgba(255,255,255,.75);
     font-size: 1.5rem;
 }
@@ -68,7 +68,7 @@ body{
 .output .unit{
     font-size: 0.75em; /* Adjust this value to make the text smaller */
 }
-.output .current-operand{
+.output .current-weight{
     color: white;
     font-size: 2.5rem;
 }

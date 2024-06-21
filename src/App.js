@@ -211,11 +211,11 @@ function App() {
       <div className="weight-output">  
       </div>
       <div className="output">
-        <div className="previous-operand">{
+        <div className="converted-weight">{
           formatOperand(convertedWeight)}{operation}
           <span className="unit">{unit === "lbs" ? "kg" : "lbs"}</span>
         </div>
-        <div className="current-operand">{formatOperand(currentWeight)}
+        <div className="current-weight">{formatOperand(currentWeight)}
           <span className="unit">{unit}</span>
         </div>
       </div>
